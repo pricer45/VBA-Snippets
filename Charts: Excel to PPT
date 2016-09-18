@@ -1,0 +1,73 @@
+Sub Excel_to_PPT_Deck()
+
+'Title: Excel to PowerPoint Chart Process
+'Description: Converts Excel Charts into PowerPoint slides
+'Keywords: Excel Powerpoint Charts
+'Categories: Office
+
+'First declare the variables
+    Dim newPowerPoint As PowerPoint.Application
+    Dim activeSlide As PowerPoint.Slide
+    Dim cht As Excel.ChartObject
+    Dim ws As Worksheet
+    Dim shtName As String
+    Dim titleText As String
+    Dim i As Integer
+
+ 'Look for existing instance
+    On Error Resume Next
+    Set newPowerPoint = GetObject(, "PowerPoint.Application")
+    newPowerPoint.Presentations.Open ("D:\Projects\My Office Files\Powerpoint\automation_test.pptx")
+    newPowerPoint.Visible = True
+    On Error GoTo 0
+
+'Or Create a new PowerPoint
+    If newPowerPoint Is Nothing Then
+        Set newPowerPoint = New PowerPoint.Application
+    End If
+'Make a presentation in PowerPoint
+    If newPowerPoint.Presentations.Count = 0 Then
+        newPowerPoint.Visible = True
+        newPowerPoint.Presentations.Open ("D:\Projects\My Office Files\Powerpoint\automation_test.pptx")
+    End If
+
+'Loop through each chart in the Excel worksheet and paste them into the PowerPoint
+    i = 0
+    For Each cht In ActiveSheet.ChartObjects
+    'Add a new slide where we will paste the chart
+        Set activeSlide = newPowerPoint.ActivePresentation.Slides(i + 1)
+        newPowerPoint.ActiveWindow.View.GotoSlide (i + 1)
+        activeSlide.Layout = ppLayoutChart
+
+    'Copy the chart and paste it into the PowerPoint as a Metafile Picture
+        cht.Select
+        ActiveChart.ChartArea.Copy
+        activeSlide.Shapes.PasteSpecial DataType:=ppPasteOLEObject
+
+    'Adjust the positioning of the Chart on Powerpoint Slide
+        'newPowerPoint.ActiveWindow.Selection.ShapeRange.LockAspectRatio = msoFalse
+        newPowerPoint.ActiveWindow.Selection.ShapeRange.Left = 35
+        newPowerPoint.ActiveWindow.Selection.ShapeRange.Top = 150
+        newPowerPoint.ActiveWindow.Selection.ShapeRange.Height = 350
+
+        activeSlide.Shapes(2).Delete
+        i = i + 1
+     
+    Next
+
+'Loop through each worksheet and paste worksheet name into PowerPoint
+    i = 0
+    shtName = ActiveSheet.Name
+    
+    For Each ws In ThisWorkbook.Sheets
+        'Rename Slide Title
+        Set myTitle = activeSlide.Shapes.Title
+        myTitle.TextFrame.TextRange.Characters.Text = shtName
+        i = i + 1
+    Next
+
+'AppActivate ("Microsoft PowerPoint")
+Set activeSlide = Nothing
+Set newPowerPoint = Nothing
+
+End Sub
